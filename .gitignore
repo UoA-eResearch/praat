@@ -20,7 +20,7 @@ DerivedData
 
 # a file that everybody should copy explicitly from their makefiles directory
 # and then rename
-makefile.defs
+#makefile.defs
 
 # executables
 praat
