@@ -130,6 +130,7 @@ canvas.emscripten { border: 0px none; background-color: black; }
       var spinnerElement = document.getElementById('spinner');
 
       var Module = {
+        arguments: ["--version"],
         //arguments: ["--run", "process.praat", "1.wav", "results.csv"],
         //noInitialRun: true,
         print: (function() {
@@ -189,14 +190,14 @@ canvas.emscripten { border: 0px none; background-color: black; }
         onRuntimeInitialized: async () => {
           console.log("Init")
           var response = await fetch("process.praat")
-          var content = await response.arrayBuffer()
-          content = new DataView(content)
+          var content = await response.text()
           FS.writeFile("process.praat", content)
           var response = await fetch("1.wav")
           var content = await response.arrayBuffer()
-          content = new DataView(content)
+          content = new Uint8Array(content)
           FS.writeFile("1.wav", content)
           self.callMain(["--run", "process.praat", "1.wav", "results.csv"])
+          Module.print(FS.readFile("results.csv", {encoding: "utf8"}))
         }
       };
       Module.setStatus('Downloading...');
