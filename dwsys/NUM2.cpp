@@ -1,6 +1,6 @@
 /* NUM2.cpp
  *
- * Copyright (C) 1993-2022 David Weenink, Paul Boersma 2017,2020
+ * Copyright (C) 1993-2024 David Weenink, Paul Boersma 2017,2020
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -353,6 +353,60 @@ autoMAT newMATinverse_fromLowerCholeskyInverse (constMAT m) {
 	return result;
 }
 
+autoMAT newMATsymmetricPositiveDefinte_inverse (constMAT m) {
+	autoMAT inverse;
+	try {
+		if (m.nrow == 1) {
+			inverse = copy_MAT (m);
+			inverse [1] [1] = ( m [1] [1] != 0.0 ? 1.0 / m [1] [1] : undefined );
+		} else {
+			autoMAT mc = newMATlowerCholesky (m, nullptr);
+			inverse = newMATinverse_fromLowerCholeskyInverse (mc.get());
+		}
+	} catch  (MelderError) {
+		inverse = copy_MAT (m);
+		inverse.get() <<= undefined;
+	}
+	return inverse;
+}
+
+autoMAT newMATsymmetric_inverse2 (constMAT m) {
+	Melder_assert (m.nrow == m.ncol);
+	autoINTVEC ipiv = zero_INTVEC (m.nrow);
+	autoMAT result = copy_MAT (m);
+	const integer lda = m.nrow, lwork = m.nrow * m.ncol;
+	/*
+		We don't query for the size of the work array, just make it big enough
+	*/
+	autoVEC work = raw_VEC (lwork);
+	integer info;
+	(void) NUMlapack_dsytrf_("L", m.nrow, & result [1] [1], lda, ipiv.asArgumentToFunctionThatExpectsZeroBasedArray(),
+		work.asArgumentToFunctionThatExpectsZeroBasedArray(), lwork, & info);
+	Melder_require (info == 0,
+		U"dsytrf_ fails with code ", info, U".");
+		
+	(void) NUMlapack_dsytri_ ("L", m.nrow, & result [1] [1], lda, ipiv.asArgumentToFunctionThatExpectsZeroBasedArray(), 
+		work.asArgumentToFunctionThatExpectsZeroBasedArray(), & info);
+	Melder_require (info == 0,
+		U"dsytri_ fails with code ", info, U".");
+	
+	return result;
+}
+
+autoMAT newMATinverse (constMAT m) {
+	Melder_assert (m.nrow == m.ncol);
+	try {
+		autoSVD svd = SVD_createFromGeneralMatrix (m);
+		autoMAT vp = raw_MAT (m.nrow, m.ncol);
+		for (integer irow = 1; irow <= m.nrow; irow ++)
+			for (integer icol = 1; icol <= m.ncol; icol ++)
+				vp [irow] [icol] = svd -> v [irow][icol] / svd -> d [icol];
+		autoMAT inverse = mul_MAT (vp.get(), svd -> u.get());
+		return inverse;
+	} catch (MelderError) {
+		Melder_throw (U"newMATinverse: cannot get inverse.");
+	}
+}
 double NUMmahalanobisDistanceSquared (constMAT lowerInverse, constVEC v, constVEC m) {
 	Melder_assert (lowerInverse.ncol == v.size && v.size == m.size);
 	longdouble chisq = 0.0;
@@ -2063,19 +2117,19 @@ void NUMfitLine_theil_preallocated (VEC const& out_lineParameters, constVEC cons
 void NUMfitLine_LS (constVEC const& x, constVEC const& y, double *out_m, double *out_intercept) {
 	Melder_require (x.size == y.size,
 		U"NUMfitLine_LS: the sizes of the two vectors should be equal.");
-	const double sx = NUMsum (x);
-	const double xmean = sx / x.size;
-	longdouble st2 = 0.0, m = 0.0;
+	const double xsum = NUMsum (x);
+	const double xmean = xsum / x.size;
+	longdouble variance = 0.0, m = 0.0;
 	for (integer i = 1; i <= x.size; i ++) {
 		const double t = x [i] - xmean;
-		st2 += t * t;
+		variance += t * t;
 		m += t * y [i];
 	}
 	// y = m*x + b
-	m /= st2;
+	m /= variance;
 	if (out_intercept) {
-		const double sy = NUMsum (y);
-		*out_intercept = (sy - m * sx) / x.size;
+		const double ysum = NUMsum (y);
+		*out_intercept = (ysum - m * xsum) / x.size;
 	}
 	if (out_m)
 		*out_m = m;

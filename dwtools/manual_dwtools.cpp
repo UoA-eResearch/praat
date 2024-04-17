@@ -1,6 +1,6 @@
 /* manual_dwtools.cpp
  *
- * Copyright (C) 1993-2023 David Weenink
+ * Copyright (C) 1993-2024 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1902,9 +1902,9 @@ CODE (U"pols50m = Create TableOfReal (Pols 1973): \"no\"")
 CODE (U"Formula: ~ log10 (self)")
 CODE (U"discriminant = To Discriminant")
 CODE (U"selectObject: pols50m, discriminant")
-CODE (U"t1 = To TableOfReal (mahalanobis): \"\\bso/\", \"no\"")
+CODE (U"t1 = To TableOfReal (mahalanobis): \"\\o/\", \"no\"")
 CODE (U"selectObject: pols50m, discriminant")
-CODE (U"t2 = To TableOfReal (mahalanobis): \"\\bsyc\", \"no\"")
+CODE (U"t2 = To TableOfReal (mahalanobis): \"\\yc\", \"no\"")
 NORMAL (U"Now we count when both the t1 and t2 values are smaller than 1 (sigma):")
 CODE (U"Copy: \"tr\"")
 CODE (U"Formula: ~ object [t1] < 1 and object [t2] < 1")
