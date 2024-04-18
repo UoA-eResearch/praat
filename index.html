@@ -7,10 +7,10 @@
   </head>
   <body>
     <div id="results"></div>
-    <script type="text/javascript" src="praat_barren.js"></script>
+    <script type="text/javascript" src="praat.js"></script>
     <script type='text/javascript'>
-      praat_barren({arguments: ["--version"]})
-      praat_barren({noInitialRun: true}).then(async function(Module) {
+      praat({arguments: ["--version"]})
+      praat({noInitialRun: true}).then(async function(Module) {
         window.Module = Module
         var response = await fetch("process.praat")
         var content = await response.text()

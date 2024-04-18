@@ -1,5 +1,5 @@
 
-var praat_barren = (() => {
+var praat = (() => {
   var _scriptDir = typeof document != 'undefined' ? document.currentScript?.src : undefined;
   if (typeof __filename != 'undefined') _scriptDir ||= __filename;
   return (
@@ -677,7 +677,7 @@ class CppException extends EmscriptenEH {
 }
 // end include: runtime_exceptions.js
 var wasmBinaryFile;
-  wasmBinaryFile = 'praat_barren.wasm';
+  wasmBinaryFile = 'praat.wasm';
   if (!isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = locateFile(wasmBinaryFile);
   }
@@ -10819,6 +10819,6 @@ run();
 );
 })();
 if (typeof exports === 'object' && typeof module === 'object')
-  module.exports = praat_barren;
+  module.exports = praat;
 else if (typeof define === 'function' && define['amd'])
-  define([], () => praat_barren);
+  define([], () => praat);
